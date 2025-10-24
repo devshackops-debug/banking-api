@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: banking-api
+  datasource:
+    url: jdbc:postgresql://postgres:5432/banking_db
+    username: banking_user
+    password: banking_pass
+

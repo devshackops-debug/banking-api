@@ -1,20 +1,25 @@
 package com.dev.shack.banking.api.models;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transactions")
+@Data
 public class Transaction {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Long id;
-    private TransactionType type;
     private Double amount;
-    private LocalDateTime timestamp;
 
+    private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "transaction_type")
+    private TransactionType transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
@@ -22,6 +27,6 @@ public class Transaction {
 
     @PrePersist
     public void prePersist() {
-        timestamp = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
     }
 }
