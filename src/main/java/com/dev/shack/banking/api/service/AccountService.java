@@ -1,11 +1,9 @@
 package com.dev.shack.banking.api.service;
 
-import com.dev.shack.banking.api.dto.AccountDto;
-import com.dev.shack.banking.api.exceptions.AccountNumberNotFoundException;
-import com.dev.shack.banking.api.exceptions.CustomerNotFoundException;
-import com.dev.shack.banking.api.mapper.AccountMapper;
-import com.dev.shack.banking.api.repository.AccountRepository;
-import com.dev.shack.banking.api.repository.CustomerRepository;
+import com.dev.shack.banking.api.persistence.repository.AccountRepository;
+import com.dev.shack.banking.api.rest.dto.AccountDto;
+import com.dev.shack.banking.api.service.exceptions.AccountNumberNotFoundException;
+import com.dev.shack.banking.api.service.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,16 +18,14 @@ public class AccountService {
     static final double INITIAL_BALANCE = 100_000.0;
 
     private final AccountRepository accountRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerService customerService;
     private final TransactionService transactionService;
-    private  final AccountMapper accountMapper;
+    private final AccountMapper accountMapper;
 
 
-    public AccountDto createAccount(AccountDto accountDto){
+    public AccountDto createAccount(AccountDto accountDto) {
 
-        var customer = customerRepository.findById(accountDto.getCustomerId())
-                .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
-
+        var customer = customerService.getCustomer(accountDto.getCustomerId());
         var account = accountMapper.toEntity(accountDto);
         account.setCustomer(customer);
         var saved = accountRepository.save(account);
@@ -67,7 +63,7 @@ public class AccountService {
 
     public AccountDto getAccountByNumber(String accountNumber) {
         var account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNumberNotFoundException("Account not found "+ accountNumber));
+                .orElseThrow(() -> new AccountNumberNotFoundException("Account not found " + accountNumber));
 
         var balance = calculateBalance(account.getAccountNumber());
         var transactions = transactionService.getTransactionsForAccount(account.getAccountNumber());

@@ -1,10 +1,10 @@
 package com.dev.shack.banking.api.service;
 
-import com.dev.shack.banking.api.dto.AccountDto;
-import com.dev.shack.banking.api.dto.FundsTransferDto;
-import com.dev.shack.banking.api.dto.TransactionDto;
-import com.dev.shack.banking.api.exceptions.InsufficientFundsException;
-import com.dev.shack.banking.api.models.TransactionType;
+import com.dev.shack.banking.api.rest.dto.AccountDto;
+import com.dev.shack.banking.api.rest.dto.FundsTransferDto;
+import com.dev.shack.banking.api.rest.dto.TransactionDto;
+import com.dev.shack.banking.api.service.exceptions.InsufficientFundsException;
+import com.dev.shack.banking.api.persistence.models.TransactionType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

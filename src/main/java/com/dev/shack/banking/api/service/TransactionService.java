@@ -1,11 +1,11 @@
 package com.dev.shack.banking.api.service;
 
-import com.dev.shack.banking.api.dto.TransactionDto;
-import com.dev.shack.banking.api.mapper.TransactionMapper;
-import com.dev.shack.banking.api.models.Account;
-import com.dev.shack.banking.api.models.Transaction;
-import com.dev.shack.banking.api.repository.AccountRepository;
-import com.dev.shack.banking.api.repository.TransactionRepository;
+import com.dev.shack.banking.api.rest.dto.TransactionDto;
+import com.dev.shack.banking.api.service.mapper.TransactionMapper;
+import com.dev.shack.banking.api.persistence.models.Account;
+import com.dev.shack.banking.api.persistence.models.Transaction;
+import com.dev.shack.banking.api.persistence.repository.AccountRepository;
+import com.dev.shack.banking.api.persistence.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,17 +23,15 @@ public class TransactionService {
     public void createTransaction(TransactionDto transactionDto) {
 
         Account account = accountRepository.findByAccountNumber((transactionDto.getAccountNumber()))
-                .orElseThrow(()-> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
         Transaction transaction = transactionMapper.toEntity(transactionDto);
         transaction.setAccount(account);
 
-       transactionRepository.save(transaction);
+        transactionRepository.save(transaction);
 
 
     }
-
-
 
     public List<TransactionDto> getTransactionsForAccount(String accountNumber) {
         var transactions = transactionRepository.findByAccount_AccountNumber(accountNumber);
