@@ -14,10 +14,8 @@ COPY src ./src
 # Build the app
 RUN ./mvnw clean package -DskipTests
 
-# ------------------------------
-# Stage 2: Runtime (Distroless)
-# ------------------------------
-FROM gcr.io/distroless/java21-debian12
+
+FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /app
 

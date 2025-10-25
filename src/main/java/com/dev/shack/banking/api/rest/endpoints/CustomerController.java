@@ -44,4 +44,22 @@ public class CustomerController {
                 .status(HttpStatus.OK)
                 .build();
     }
+
+    @PutMapping
+    public BankAPIResponse<CustomerDto> updateCustomer(@RequestBody CustomerDto customerDto) {
+
+        return BankAPIResponse.<CustomerDto>builder()
+                .data(customerService.updateCustomer(customerDto))
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public BankAPIResponse<Void> deleteCustomer(@PathVariable Long id) {
+        customerService.deleteCustomer(id);
+
+        return BankAPIResponse.<Void>builder()
+                .status(HttpStatus.ACCEPTED)
+                .build();
+    }
 }

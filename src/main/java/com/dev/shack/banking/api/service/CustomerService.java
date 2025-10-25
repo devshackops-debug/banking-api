@@ -32,6 +32,20 @@ public class CustomerService {
 
     }
 
+    public CustomerDto updateCustomer(CustomerDto customerDto) {
+        var optionalCustomer = customerRepository.findById(customerDto.getId());
+        if (optionalCustomer.isEmpty())
+            throw new CustomerNotFoundException("Customer with id " + customerDto.getId() + " not found");
+
+        var saved = customerRepository.save(customerMapper.toEntity(customerDto));
+        List<AccountDto> accountsForCustomerId = accountService.getAccountsForCustomerId(customerDto.getId());
+        return customerMapper.toDto(saved, accountsForCustomerId);
+    }
+
+    public void deleteCustomer(Long customerId) {
+
+        customerRepository.deleteById(customerId);
+    }
     public List<CustomerDto> getAllCustomers() {
         var allCustomers = customerRepository.findAll();
 

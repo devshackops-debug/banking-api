@@ -12,6 +12,7 @@ public class TransactionMapper {
         return TransactionDto.builder()
                 .accountNumber(transaction.getAccount().getAccountNumber())
                 .amount(transaction.getAmount())
+                .transactionType(transaction.getTransactionType())
                 .timestamp(transaction.getCreatedAt())
                 .build();
 

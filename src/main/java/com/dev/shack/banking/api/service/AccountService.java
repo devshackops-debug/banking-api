@@ -1,8 +1,10 @@
 package com.dev.shack.banking.api.service;
 
 import com.dev.shack.banking.api.persistence.repository.AccountRepository;
+import com.dev.shack.banking.api.persistence.repository.CustomerRepository;
 import com.dev.shack.banking.api.rest.dto.AccountDto;
 import com.dev.shack.banking.api.service.exceptions.AccountNumberNotFoundException;
+import com.dev.shack.banking.api.service.exceptions.CustomerNotFoundException;
 import com.dev.shack.banking.api.service.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,14 +20,16 @@ public class AccountService {
     static final double INITIAL_BALANCE = 100_000.0;
 
     private final AccountRepository accountRepository;
-    private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
     private final TransactionService transactionService;
     private final AccountMapper accountMapper;
 
 
     public AccountDto createAccount(AccountDto accountDto) {
 
-        var customer = customerService.getCustomer(accountDto.getCustomerId());
+        var customer = customerRepository.findById(accountDto.getCustomerId()).orElseThrow(
+                () -> new CustomerNotFoundException("Customer not found with id: " + accountDto.getCustomerId())
+        );
         var account = accountMapper.toEntity(accountDto);
         account.setCustomer(customer);
         var saved = accountRepository.save(account);
