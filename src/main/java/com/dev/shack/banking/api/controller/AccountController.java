@@ -2,11 +2,9 @@ package com.dev.shack.banking.api.controller;
 
 import com.dev.shack.banking.api.dto.AccountDto;
 import com.dev.shack.banking.api.dto.BankAPIResponse;
-import com.dev.shack.banking.api.dto.CustomerDto;
 import com.dev.shack.banking.api.service.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,7 +37,7 @@ public class AccountController {
     public BankAPIResponse<AccountDto> fetchAccount(@PathVariable String accountNumber) {
 
         return  BankAPIResponse.<AccountDto>builder()
-                .data(accountService.getAccountByNumberWithTransaction(accountNumber))
+                .data(accountService.getAccountByNumber(accountNumber))
                 .status(HttpStatus.OK)
                 .build();
     }

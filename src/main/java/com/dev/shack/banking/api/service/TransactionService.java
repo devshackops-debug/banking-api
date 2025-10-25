@@ -1,6 +1,7 @@
 package com.dev.shack.banking.api.service;
 
 import com.dev.shack.banking.api.dto.TransactionDto;
+import com.dev.shack.banking.api.mapper.TransactionMapper;
 import com.dev.shack.banking.api.models.Account;
 import com.dev.shack.banking.api.models.Transaction;
 import com.dev.shack.banking.api.repository.AccountRepository;
@@ -16,25 +17,20 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final TransactionMapper transactionMapper;
 
 
     public void createTransaction(TransactionDto transactionDto) {
 
-        Account account = accountRepository.findByAccountNumber((transactionDto.accountNumber()))
+        Account account = accountRepository.findByAccountNumber((transactionDto.getAccountNumber()))
                 .orElseThrow(()-> new RuntimeException("Account not found"));
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionType(transactionDto.transactionType());
-        transaction.setAmount(transactionDto.amount());
+        Transaction transaction = transactionMapper.toEntity(transactionDto);
         transaction.setAccount(account);
 
-        Transaction saved = transactionRepository.save(transaction);
+       transactionRepository.save(transaction);
 
-        new TransactionDto(saved.getId(),
-                saved.getAmount(),
-                saved.getCreatedAt(),
-                saved.getAccount().getAccountNumber(),
-                saved.getTransactionType());
+
     }
 
 
@@ -42,13 +38,7 @@ public class TransactionService {
     public List<TransactionDto> getTransactionsForAccount(String accountNumber) {
         var transactions = transactionRepository.findByAccount_AccountNumber(accountNumber);
         return transactions.stream()
-                .map(txn -> new TransactionDto(
-                        txn.getId(),
-                        txn.getAmount(),
-                        txn.getCreatedAt(),
-                        txn.getAccount().getAccountNumber(),
-                        txn.getTransactionType()
-                ))
+                .map(transactionMapper::toDto)
                 .toList();
     }
 

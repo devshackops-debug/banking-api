@@ -10,9 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.naming.InsufficientResourcesException;
-import java.time.LocalDateTime;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,22 +27,27 @@ public class TransferService {
         AccountDto toAccount = accountService.getAccountByNumber(dto.toAccountNumber());
 
 
-        double fromBalance = fromAccount.balance();
+        double fromBalance = fromAccount.getBalance();
         if (fromBalance < dto.amount()) {
             throw new InsufficientFundsException("Insufficient funds in account ");
         }
 
 
-        transactionService.createTransaction(new TransactionDto(fromAccount.id(),
-                dto.amount(),
-                LocalDateTime.now(),
-                dto.fromAccountNumber(),
-                TransactionType.DEBIT));
-        transactionService.createTransaction(new TransactionDto(toAccount.id(),
-                dto.amount(),
-                LocalDateTime.now(),
-                dto.toAccountNumber(),
-                TransactionType.CREDIT));
+        var debitTransaction = TransactionDto.builder()
+                .amount(dto.amount())
+                .accountNumber(fromAccount.getAccountNumber())
+                .transactionType(TransactionType.DEBIT)
+                .build();
+
+
+        var creditTransaction = TransactionDto.builder()
+                .amount(dto.amount())
+                .accountNumber(toAccount.getAccountNumber())
+                .transactionType(TransactionType.CREDIT)
+                .build();
+
+        transactionService.createTransaction(debitTransaction);
+        transactionService.createTransaction(creditTransaction);
 
     }
 }

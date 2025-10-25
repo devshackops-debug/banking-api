@@ -1,8 +1,3 @@
--- =========================================================
--- ENUM TYPES
--- =========================================================
-CREATE TYPE account_status AS ENUM ('ACTIVE', 'CLOSED', 'DELETED');
-CREATE TYPE transaction_type AS ENUM ('CREDIT', 'DEBIT');
 
 -- =========================================================
 -- CUSTOMERS TABLE
@@ -19,7 +14,7 @@ CREATE TABLE customers (
 CREATE TABLE accounts (
                           id SERIAL PRIMARY KEY,
                           account_number VARCHAR(255),
-                          status account_status NOT NULL,
+                          status VARCHAR NOT NULL,
                           customer_id BIGINT NOT NULL,
                           CONSTRAINT fk_account_customer FOREIGN KEY (customer_id)
                               REFERENCES customers (id)
@@ -31,7 +26,7 @@ CREATE TABLE accounts (
 -- =========================================================
 CREATE TABLE transactions (
                               id SERIAL PRIMARY KEY,
-                              transaction_type transaction_type NOT NULL,
+                              transaction_type VARCHAR NOT NULL,
                               amount DOUBLE PRECISION NOT NULL,
                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                               account_id BIGINT NOT NULL,

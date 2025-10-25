@@ -3,7 +3,7 @@ package com.dev.shack.banking.api.service;
 import com.dev.shack.banking.api.dto.AccountDto;
 import com.dev.shack.banking.api.exceptions.AccountNumberNotFoundException;
 import com.dev.shack.banking.api.exceptions.CustomerNotFoundException;
-import com.dev.shack.banking.api.models.Account;
+import com.dev.shack.banking.api.mapper.AccountMapper;
 import com.dev.shack.banking.api.repository.AccountRepository;
 import com.dev.shack.banking.api.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,88 +22,60 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
     private final TransactionService transactionService;
+    private  final AccountMapper accountMapper;
 
 
     public AccountDto createAccount(AccountDto accountDto){
 
-        var customer = customerRepository.findById(accountDto.customerId())
+        var customer = customerRepository.findById(accountDto.getCustomerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
 
-        var account = new Account();
-        account.setAccountNumber(accountDto.accountNumber());
-        account.setStatus(accountDto.accountStatus());
+        var account = accountMapper.toEntity(accountDto);
         account.setCustomer(customer);
         var saved = accountRepository.save(account);
-        return  new AccountDto(saved.getId(),
-                saved.getAccountNumber(),
-                saved.getStatus(),
-                calculateBalance(accountDto.accountNumber()),
-                transactionService.getTransactionsForAccount(accountDto.accountNumber()),
-                customer.getId());
+        return accountMapper.toDto(saved, INITIAL_BALANCE, List.of());
     }
 
     public List<AccountDto> getAllAccounts() {
         var accountList = accountRepository.findAll();
 
         return accountList.stream()
-                .map(account -> new AccountDto(
-                        account.getId(),
-                        account.getAccountNumber(),
-                        account.getStatus(),
-                        calculateBalance(account.getAccountNumber()),
-                        transactionService.getTransactionsForAccount(account.getAccountNumber()),
-                        account.getId()
-                ))
+                .map(account -> {
+                    var balance = calculateBalance(account.getAccountNumber());
+                    var transactions = transactionService.getTransactionsForAccount(account.getAccountNumber());
+
+                    return accountMapper.toDto(account, balance, transactions);
+                })
                 .toList();
+
     }
 
     public List<AccountDto> getAccountsForCustomerId(Long id) {
 
         var accountsForCustomerId = accountRepository.findByCustomer_Id(id);
         return accountsForCustomerId.stream()
-                .map(account -> new AccountDto(
+                .map(account -> {
+                    var balance = calculateBalance(account.getAccountNumber());
+                    var transactions = transactionService.getTransactionsForAccount(account.getAccountNumber());
 
-                        account.getId(),
-                        account.getAccountNumber(),
-                        account.getStatus(),
-                        calculateBalance(account.getAccountNumber()),
-                        transactionService.getTransactionsForAccount(account.getAccountNumber()),
-                        account.getId()
-                ))
+                    return accountMapper.toDto(account, balance, transactions);
+                })
                 .toList();
+
     }
 
-    public double calculateBalance(String accountNumber) {
-        var netAmount = transactionService.getNetTransactionsAmount(accountNumber);
-        return INITIAL_BALANCE + netAmount;
-    }
 
     public AccountDto getAccountByNumber(String accountNumber) {
         var account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new AccountNumberNotFoundException("Account not found "+ accountNumber));
 
         var balance = calculateBalance(account.getAccountNumber());
-        return new AccountDto(
-                account.getId(),
-                account.getAccountNumber(),
-                account.getStatus(),
-                balance,
-                List.of(),
-                account.getCustomer().getId()
-        );
+        var transactions = transactionService.getTransactionsForAccount(account.getAccountNumber());
+        return accountMapper.toDto(account, balance, transactions);
     }
-    public AccountDto getAccountByNumberWithTransaction(String accountNumber) {
-        var account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountNumberNotFoundException("Account not found "+ accountNumber));
 
-        var balance = calculateBalance(account.getAccountNumber());
-        return new AccountDto(
-                account.getId(),
-                account.getAccountNumber(),
-                account.getStatus(),
-                balance,
-                transactionService.getTransactionsForAccount(account.getAccountNumber()),
-                account.getCustomer().getId()
-        );
+    private double calculateBalance(String accountNumber) {
+        var netAmount = transactionService.getNetTransactionsAmount(accountNumber);
+        return INITIAL_BALANCE + netAmount;
     }
 }

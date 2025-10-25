@@ -1,9 +1,10 @@
 package com.dev.shack.banking.api.service;
 
+import com.dev.shack.banking.api.dto.AccountDto;
 import com.dev.shack.banking.api.dto.CustomerDto;
 import com.dev.shack.banking.api.exceptions.CustomerEmailAlreadyExistsException;
 import com.dev.shack.banking.api.exceptions.CustomerNotFoundException;
-import com.dev.shack.banking.api.models.Customer;
+import com.dev.shack.banking.api.mapper.CustomerMapper;
 import com.dev.shack.banking.api.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,20 +17,17 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final AccountService accountService;
+    private final CustomerMapper customerMapper;
 
     public CustomerDto createCustomer(CustomerDto customerDto){
 
-       var optionalCustomer = customerRepository.findCustomerByEmail(customerDto.email());
+       var optionalCustomer = customerRepository.findCustomerByEmail(customerDto.getEmail());
 
         if (optionalCustomer.isPresent())
-            throw new CustomerEmailAlreadyExistsException("Customer with email " + customerDto.email() + " already exists");
+            throw new CustomerEmailAlreadyExistsException("Customer with email " + customerDto.getEmail() + " already exists");
 
-        var customer = new Customer();
-        customer.setName(customerDto.name());
-        customer.setEmail(customerDto.email());
-
-        var saved = customerRepository.save(customer);
-        return  new CustomerDto(saved.getId(), saved.getName(),  saved.getEmail(), null);
+        var saved = customerRepository.save(customerMapper.toEntity(customerDto));
+        return  customerMapper.toDto(saved, List.of());
 
     }
 
@@ -37,10 +35,10 @@ public class CustomerService {
         var allCustomers = customerRepository.findAll();
 
         return allCustomers.stream()
-                .map(customer -> (
-                    new CustomerDto(customer.getId(), customer.getName(), customer.getEmail(),
-                            accountService.getAccountsForCustomerId(customer.getId()))
-                )).toList();
+                .map(customer -> {
+                    List<AccountDto> accountsForCustomerId = accountService.getAccountsForCustomerId(customer.getId());
+                    return (customerMapper.toDto(customer, accountsForCustomerId));
+                }).toList();
     }
 
     public CustomerDto getCustomerById(Long id){
@@ -48,8 +46,7 @@ public class CustomerService {
         var customerRepositoryById = customerRepository.findById(id);
         if (customerRepositoryById.isPresent()){
             var customer = customerRepositoryById.get();
-            return  new CustomerDto(customer.getId(), customer.getName(), customer.getEmail(),
-                    accountService.getAccountsForCustomerId(customer.getId()));
+            return  customerMapper.toDto(customer, accountService.getAccountsForCustomerId(customer.getId()));
         }else {
             throw new CustomerNotFoundException("Customer with id not found");
         }

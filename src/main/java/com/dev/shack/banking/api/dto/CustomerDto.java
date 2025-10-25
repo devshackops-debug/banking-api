@@ -1,9 +1,19 @@
 package com.dev.shack.banking.api.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record CustomerDto(Long id,
-                          String name,
-                          String email,
-                          List<AccountDto> accounts) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerDto {
+    private Long id;
+    private String name;
+    private String email;
+    private List<AccountDto> accounts;
 }
